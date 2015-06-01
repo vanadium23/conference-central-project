@@ -547,7 +547,7 @@ class ConferenceApi(remote.Service):
         return self._conferenceRegistration(request, reg=False)
 
 
-    @endpoints.method(message_types.VoidMessage, ConferenceForms,
+    @endpoints.method(message_types.VoidMessage, SessionForms,
             path='filterPlayground',
             http_method='GET', name='filterPlayground')
     def filterPlayground(self, request):
@@ -558,12 +558,13 @@ class ConferenceApi(remote.Service):
         # value = "London"
         # f = ndb.query.FilterNode(field, operator, value)
         # q = q.filter(f)
-        q = q.filter(Conference.city=="London")
-        q = q.filter(Conference.topics=="Medical Innovations")
-        q = q.filter(Conference.month==6)
+        confs = Conference.query(Conference.city=="Default City")
+        sessions = []
+        for conf in confs:
+            sessions += Session.query(ancestor=conf.key)
 
-        return ConferenceForms(
-            items=[self._copyConferenceToForm(conf, "") for conf in q]
+        return SessionForms(
+            items=[self._copySessionToForm(conf) for session in sessions]
         )
 
 
@@ -595,7 +596,7 @@ class ConferenceApi(remote.Service):
         if not conf:
             raise endpoints.NotFoundException(
                 'No conference found with key: %s' % request.websafeConferenceKey)
-        q = Session.query(ancestor=conf.key)
+        q = Session.query()
         q = q.filter(Session.typeOfSession==request.typeOfSession)
 
         return SessionForms(
