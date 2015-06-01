@@ -29,6 +29,7 @@ class Profile(ndb.Model):
     mainEmail = ndb.StringProperty()
     teeShirtSize = ndb.StringProperty(default='NOT_SPECIFIED')
     conferenceKeysToAttend = ndb.StringProperty(repeated=True)
+    sessionKeysInWishlist = ndb.StringProperty(repeated=True)
 
 
 class ProfileMiniForm(messages.Message):
@@ -43,6 +44,7 @@ class ProfileForm(messages.Message):
     mainEmail = messages.StringField(2)
     teeShirtSize = messages.EnumField('TeeShirtSize', 3)
     conferenceKeysToAttend = messages.StringField(4, repeated=True)
+    sessionKeysInWishlist = messages.StringField(5, repeated=True)
 
 
 class StringMessage(messages.Message):
@@ -124,7 +126,7 @@ class ConferenceQueryForms(messages.Message):
 class Session(ndb.Model):
     """Session -- Session object"""
     name            = ndb.StringProperty(required=True)
-    conferenceId    = ndb.StringProperty()
+    conferenceId    = ndb.IntegerProperty()
     highlights      = ndb.StringProperty(repeated=True)
     speaker         = ndb.StringProperty()
     duration        = ndb.IntegerProperty()
@@ -139,12 +141,20 @@ class SessionForm(messages.Message):
     highlights      = messages.StringField(2, repeated=True)
     speaker         = messages.StringField(3)
     duration        = messages.IntegerField(4)
-    typeOfSession   = messages.StringField(5)
+    typeOfSession   = messages.EnumField('SessionType', 5, default='NOT_SPECIFIED')
     date            = messages.StringField(6)
     startTime       = messages.StringField(7)
+    websafeKey      = messages.StringField(8)
+
+
+class SessionType(messages.Enum):
+    """SessionType -- session type enumeration value"""
+    NOT_SPECIFIED = 1
+    WORKSHOP = 2
+    LECTURE = 3
+    KEYNOTE = 4
 
 
 class SessionForms(messages.Message):
     """SessionForms -- multiple Session outbound form message"""
     items = messages.MessageField(SessionForm, 1, repeated=True)
-
