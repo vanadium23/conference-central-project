@@ -24,6 +24,40 @@ App Engine application for the Udacity training course.
 1. Deploy your application.
 
 
+## Task 1: Add Sessions to a Conference
+####Explain your design choices
+There is a straight as possible. Speakers I've implemented as a string to perfom a simple quiries, but this decision is not scalable, if new tasks will be to add additional informaion to them.
+
+##Task 3: Work on indexes and queries
+####Come up with 2 additional queries
+```
+# sessions that are workshop or lectures
+sessions = Session.query(ndb.OR(Session.typeOfSession == SessionType.WORKSHOP, 
+                                      Session.typeOfSession == SessionType.LECTURE))
+```
+
+```
+# get all sessions holding in city
+confs = Conference.query(Conference.city=="Default City")
+sessions = []
+for conf in confs:
+            sessions += Session.query(ancestor=conf.key)
+```
+
+####Solve the following query related problem
+This quieries has two ineqaulity statement, so we need to make one statement from != into IN.
+```
+seven_pm = datetime.datetime.strptime("19:00", "%H:%M").time()
+allowed_types = [key for key in SessionType if key != SessionType.WORKSHOP]
+for session in Session.query(ndb.AND(Session.typeOfSession.IN(allowed_types), 
+                                     Session.startTime < seven_pm)):
+    print '%s - %s - %s' % (session.name, session.typeOfSession, 
+                                session.startTime.strftime("%H:%M"))
+```
+
+
+
+
 [1]: https://developers.google.com/appengine
 [2]: http://python.org
 [3]: https://developers.google.com/appengine/docs/python/endpoints/
