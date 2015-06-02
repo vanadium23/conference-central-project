@@ -579,6 +579,10 @@ class ConferenceApi(remote.Service):
         if not conf:
             raise endpoints.NotFoundException(
                 'No conference found with key: %s' % request.websafeConferenceKey)
+
+        if not isinstance(conf, Conference):
+            raise endpoints.BadRequestException('Key must target to Conference')
+
         # create ancestor query for all key matches for this user
         sessions = Session.query(ancestor=conf.key)
         return SessionForms(
@@ -596,8 +600,12 @@ class ConferenceApi(remote.Service):
         if not conf:
             raise endpoints.NotFoundException(
                 'No conference found with key: %s' % request.websafeConferenceKey)
-        q = Session.query()
-        q = q.filter(Session.typeOfSession==request.typeOfSession)
+
+        if not isinstance(conf, Conference):
+            raise endpoints.BadRequestException('Key must target to Conference')
+
+        q = Session.query(ancestor=conf.key)
+        q = q.filter(Session.typeOfSession == request.typeOfSession)
 
         return SessionForms(
             items=[self._copySessionToForm(session) for session in q]
@@ -606,12 +614,11 @@ class ConferenceApi(remote.Service):
 
     @endpoints.method(endpoints.ResourceContainer(
         speaker=messages.StringField(1)), SessionForms,
-            path='/session/{speaker}',
+            path='session/{speaker}',
             http_method='GET', name='getSessionsBySpeaker')
     def getSessionsBySpeaker(self, request):
         """Given a speaker, return all sessions given by this particular speaker, across all conferences"""
-        q = Session.query()
-        q = q.filter(Session.speaker==request.speaker)
+        q = Session.query(Session.speaker == request.speaker)
 
         return SessionForms(
             items=[self._copySessionToForm(session) for session in q]
@@ -629,6 +636,9 @@ class ConferenceApi(remote.Service):
             raise endpoints.NotFoundException(
                 'No conference found with key: %s' % request.websafeConferenceKey)
 
+        if not isinstance(conf, Conference):
+            raise endpoints.BadRequestException('Key must target to Conference')
+
         # preload necessary data items
         user = endpoints.get_current_user()
         if not user:
@@ -645,7 +655,7 @@ class ConferenceApi(remote.Service):
             raise endpoints.BadRequestException("Session 'speaker' field required")
 
 
-        # copy ConferenceForm/ProtoRPC Message into dict
+        # copy SessionForm/ProtoRPC Message into dict
         data = {field.name: getattr(request, field.name) for field in request.all_fields()}
         del data['websafeConferenceKey']
         del data['websafeKey']
