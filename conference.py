@@ -734,37 +734,33 @@ class ConferenceApi(remote.Service):
         return self._sessionWishlist(request, False)
 
 
-    def _sessionWishlist(self, request, reg=True):
+    @ndb.transactional
+    def _sessionWishlist(self, request, add=True):
         """Manage sessions in user's wishlist."""
         retval = None
         prof = self._getProfileFromUser() # get user Profile
 
-        # check if session exists given websafeConfKey
+        # check if session exists given SessionKey
         # get session; check that it exists
-        wsck = request.SessionKey
-        conf = ndb.Key(urlsafe=wsck).get()
-        if not conf:
+        wssk = request.SessionKey
+        session = ndb.Key(urlsafe=wssk).get()
+        if not session:
             raise endpoints.NotFoundException(
-                'No session found with key: %s' % wsck)
+                'No session found with key: %s' % wssk)
 
-        # register
-        if reg:
-            # check if user already registered otherwise add
-            if wsck in prof.sessionKeysInWishlist:
+        if not isinstance(session, Session):
+            raise endpoints.BadRequestException(
+                'Key must point to Session')
+
+        if add:
+            if wssk in prof.sessionKeysInWishlist:
                 raise ConflictException(
                     "You have already registered for this session")
-
-            # register user, take away one seat
-            prof.sessionKeysInWishlist.append(wsck)
+            prof.sessionKeysInWishlist.append(wssk)
             retval = True
-
-        # unregister
         else:
-            # check if user already registered
-            if wsck in prof.sessionKeysInWishlist:
-
-                # unregister user, add back one seat
-                prof.sessionKeysInWishlist.remove(wsck)
+            if wssk in prof.sessionKeysInWishlist:
+                prof.sessionKeysInWishlist.remove(wssk)
                 retval = True
             else:
                 retval = False
