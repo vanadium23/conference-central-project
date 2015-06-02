@@ -666,7 +666,6 @@ class ConferenceApi(remote.Service):
         s_id = Session.allocate_ids(size=1, parent=conf.key)[0]
         s_key = ndb.Key(Session, s_id, parent=conf.key)
         data['key'] = s_key
-        data['conferenceId'] = conf.key.id()
         session = Session(**data)
         session.put()
         self._cacheFeatureSessions(session)
