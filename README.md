@@ -26,7 +26,7 @@ App Engine application for the Udacity training course.
 
 ## Task 1: Add Sessions to a Conference
 ####Explain your design choices
-There is a straight as possible. Speakers I've implemented as a string to perfom a simple quiries, but this decision is not scalable, if new tasks will be to add additional informaion to them.
+There is a straight as possible. Speakers I've implemented as a string to perfom a simple quiries, but this decision is not scalable, if new tasks will be to add additional informaion to them. Sessions are created as a child of conference. Also typeOfSession is defined as EnumType (not String) to make some validation to it.
 
 ##Task 3: Work on indexes and queries
 ####Come up with 2 additional queries
