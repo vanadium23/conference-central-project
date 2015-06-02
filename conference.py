@@ -678,7 +678,10 @@ class ConferenceApi(remote.Service):
         data['key'] = s_key
         session = Session(**data)
         session.put()
-        self._cacheFeatureSessions(session)
+        taskqueue.add(params={'speaker': data['speaker'],
+                    'wcsk': request.websafeConferenceKey},
+                    url='/tasks/set_feature_session_announcement'
+                )
         return self._copySessionToForm(session)
 
     def _copySessionToForm(self, session):
@@ -771,17 +774,25 @@ class ConferenceApi(remote.Service):
 
 
     # Get announcment for feature session
-    def _cacheFeatureSessions(self, session):
+    @staticmethod
+    def _cacheFeatureSessions(speaker, wsck):
         """
             When a new session is added to a conference, check the speaker.
             If there is more than one session by this speaker at this conference,
             also add a new Memcache entry that features the speaker and session names.
             You can choose the Memcache key.
         """
-        sessions = Session.query(Session.speaker == session.speaker).fetch()
+        conf = ndb.Key(urlsafe=wsck).get()
+        if not conf:
+            raise endpoints.NotFoundException(
+                'No conference found with key: %s' % wsck)
+
+        sessions = Session.query(ancestor=conf.key).\
+            filter(Session.speaker == speaker).\
+            fetch()
         count = len(sessions)
         if count > 1:
-            features = FEATURE_SESSIONS_TPL % (session.speaker,
+            features = FEATURE_SESSIONS_TPL % (speaker,
                                                    ', '.join([s.name for s in sessions]))
             memcache.set(MEMCACHE_FEATURE_SESSIONS_KEY, features)
 
