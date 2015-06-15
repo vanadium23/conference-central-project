@@ -527,7 +527,7 @@ conferenceApp.controllers.controller('ShowConferenceCtrl', function ($scope, $lo
                         }
                     } else {
                         // The request has succeeded.
-                        $scope.conferences = resp.result.items;
+                        $scope.conferences = resp.result.items || [];
                         $scope.loading = false;
                         $scope.messages = 'Query succeeded : Conferences you will attend (or you have attended)';
                         $scope.alertStatus = 'success';

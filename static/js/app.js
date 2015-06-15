@@ -57,7 +57,7 @@ app.filter('startFrom', function () {
      * @returns {Array|*}
      */
     var filter = function (data, start) {
-        return data.slice(start);
+        return Array.isArray(data) ? data.slice(start) : [];
     }
     return filter;
 });
